@@ -1,0 +1,57 @@
+* {
+    body {
+        background-image: linear-gradient(right, #4b4b4b, #6e6e6e);
+    }
+    font-family: sans-serif;
+    > header {
+        > h1 {
+            text-align: center;
+            color: #fff;
+        }
+    }
+    > section {
+        flex: auto;
+        > div {
+            &#login-container {
+                margin: auto;
+                text-align: center;
+                padding: 2em 1em;
+                width: 15em;
+                font-weight: bold;
+                background-image: linear-gradient( #80d3a6, #4aa7be);
+                > input {
+                    border: 0;
+                    height: 2em;
+                    text-align: center;
+                    font-size: 1em;
+                    font-weight: bold;
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                    background-color: #fff;
+                }
+                > input[type="text"] {
+                    padding: 0;
+                    &#txt-username {
+                        width: 7em;
+                    }
+                    &#txt-room-code {
+                        width: 4em;
+                    }
+                }
+                > input[type="submit"] {
+                    border-style: outset;
+                    &:hover {
+                        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+                    }
+                }
+                > p#err-msg {
+                    display: none;
+                    color: #f00;
+                    margin: 0;
+                    padding: 0;
+                    font-weight: normal;
+                }
+            }
+        }
+    }
+}

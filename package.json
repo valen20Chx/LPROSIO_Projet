@@ -1,0 +1,23 @@
+{
+  "name": "lprosio_projet",
+  "version": "1.0.0",
+  "description": "Projet de Licence Pro SIO",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valen20Chx/LPROSIO_Projet.git"
+  },
+  "author": "Valentin Charoux & Thibaut Caudron",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/valen20Chx/LPROSIO_Projet/issues"
+  },
+  "homepage": "https://github.com/valen20Chx/LPROSIO_Projet#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
+}
