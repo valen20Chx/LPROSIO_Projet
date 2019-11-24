@@ -1,0 +1,12 @@
+Node Modules:
+    SqlLite 3: https://www.npmjs.com/package/sqlite3 
+    Firebase : https://www.npmjs.com/package/firebase
+
+Videos:
+
+
+Articles:
+
+
+//Firebase
+id du projet : lprosio-projet

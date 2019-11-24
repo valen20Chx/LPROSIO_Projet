@@ -44,7 +44,7 @@
 }
 
 * > section > div#login-container > input[type="text"]#txt-username {
-  width: 7em;
+  width: 6em;
 }
 
 * > section > div#login-container > input[type="text"]#txt-room-code {

@@ -1,0 +1,34 @@
+// DB
+var db = {
+    parties: [ // Tableau de parties
+        {
+            phase: 1,
+            joueurs: [ // Min = 3 & Max = 8
+                {
+                    name: "name", // String
+                    score: 0 // Int
+                }
+            ]
+        },
+        compo: [
+            {
+                id: 01,
+                id_joueur: 01,
+                docs: [
+                    {
+                        id: 01
+                    }
+                ]
+                titre: texte: "Le titre" //max  = 150 chars,
+                mot_special: null
+            }
+        ],
+        documents: [
+            {
+                id: 01, // Int
+                joueur: 01, // Obj ou Id: Int
+                doc: 01 // Doc
+            }
+        ]
+    ]
+};

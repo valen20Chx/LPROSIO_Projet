@@ -1,0 +1,23 @@
+Min 3 joueurs
+Max 7 Joueurs
+
+- Chaque joueur envoie 5 images qu'il choirisa en fonction du theme/mot clé proposé.
+- Chaque joueur recevra 5 images aleatoirement parmit celle de tout les joueurs
+- Parmit ces images recu il pourras les selectionné dans l'ordre voulu (minimum 3/5)
+- Par la suite il devra metre un titre a son histoire.
+- Avec l'aides des images et du titre, chaque joueur va raconter l'histoire qu'il a inventé.
+- Les joueurs votent pour l'histoire respectant le thème la plus drôle.
+
+- Chaque vote = 1 point
+
+
+
+Il y a 3 manche 
+- Manche 1 et 2 = normale (Points X 1)
+[Scoreboard] (Entre chaque manches pendant 10 sec)
+- Manche 3 le joueur reçoit en plus un mot envoyer par un autre jouer qu'il devra utiliser dans son titre. (Points X2)
+
+[Scoreboard Final]
+
+(Additionel Potentiel)
+Parier sur meilleur histoire

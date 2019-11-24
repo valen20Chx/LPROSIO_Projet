@@ -2,6 +2,7 @@ const express = require('express');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var firebase = require('firebase');
 
 // const hostname = '127.0.0.1';
 const port = 3000;
@@ -19,13 +20,25 @@ http.listen(port, () => {
 // });
 
 //////////////////////
+//    Firebase
+//////////////////////
+
+var firebase_app = firebase.initializeApp({
+    apiKey: 'AIzaSyDynJXJrx-4loDRF3z3yx_g9_Ku0xI0AZc',
+    authDomain: '<your-auth-domain>',
+    databaseURL: 'https://lprosio-projet.firebaseio.com',
+    projectId: 'lprosio-projet',
+    storageBucket: '<your-storage-bucket>',
+    messagingSenderId: '<your-sender-id>'
+});
+
+//////////////////////
 //    Socket.io
 //////////////////////
 
-io.on('connection', (socket) => {
-    console.log('New connection');
-
+io.on('connection', (socket) => { // Pour le client
+    console.log('New connection: ' + socket.id);
     socket.on('disconnect', () => {
-        console.log('New disconnection');
+        console.log('New disconnection: ') + socket.id;
     });
 });
