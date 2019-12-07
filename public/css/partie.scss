@@ -1,0 +1,26 @@
+* {
+    body {
+        background-image: linear-gradient(right, #4b4b4b, #6e6e6e);
+        div#game-container {
+            flex: auto;
+            > li.player-list {
+                list-style: none;
+                > div {
+                    margin-bottom: 1em;
+                    img.player-img {
+                        width: 64px;
+                        height: 64px;
+                        margin-right: 1em;
+                    }
+                    p.player-name {
+                        font-weight: bold;
+                        display: inline;
+                        vertical-align: top;
+                        display: inline-block;
+                    }
+                }
+            }
+        }
+    }
+    font-family: sans-serif;
+}

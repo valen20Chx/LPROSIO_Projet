@@ -1,0 +1,36 @@
+* {
+  font-family: sans-serif;
+}
+
+* body {
+  background-image: -webkit-gradient(linear, right top, left top, from(#4b4b4b), to(#6e6e6e));
+  background-image: linear-gradient(right, #4b4b4b, #6e6e6e);
+}
+
+* body div#game-container {
+  -webkit-box-flex: 1;
+      -ms-flex: auto;
+          flex: auto;
+}
+
+* body div#game-container > li.player-list {
+  list-style: none;
+}
+
+* body div#game-container > li.player-list > div {
+  margin-bottom: 1em;
+}
+
+* body div#game-container > li.player-list > div img.player-img {
+  width: 64px;
+  height: 64px;
+  margin-right: 1em;
+}
+
+* body div#game-container > li.player-list > div p.player-name {
+  font-weight: bold;
+  display: inline;
+  vertical-align: top;
+  display: inline-block;
+}
+/*# sourceMappingURL=partie.css.map */
