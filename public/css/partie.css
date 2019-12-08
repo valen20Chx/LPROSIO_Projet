@@ -7,10 +7,30 @@
   background-image: linear-gradient(right, #4b4b4b, #6e6e6e);
 }
 
+* body div#loading-container img {
+  width: 50px;
+}
+
+* body div#loading-container p {
+  color: #fff;
+  font-weight: bold;
+}
+
+* body div#init-container {
+  display: none;
+}
+
+* body div#init-container > button#init-button {
+  padding: 1em;
+  font-weight: bold;
+  font-size: 14pt;
+}
+
 * body div#game-container {
   -webkit-box-flex: 1;
       -ms-flex: auto;
           flex: auto;
+  display: none;
 }
 
 * body div#game-container > li.player-list {

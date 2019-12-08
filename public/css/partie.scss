@@ -1,8 +1,26 @@
 * {
     body {
         background-image: linear-gradient(right, #4b4b4b, #6e6e6e);
+        div#loading-container {
+            img {
+                width: 50px;
+            }
+            p {
+                color: #fff;
+                font-weight: bold;
+            }
+        }
+        div#init-container {
+            display: none;
+            > button#init-button {
+                padding: 1em;
+                font-weight: bold;
+                font-size: 14pt;
+            }
+        }
         div#game-container {
             flex: auto;
+            display: none;
             > li.player-list {
                 list-style: none;
                 > div {
