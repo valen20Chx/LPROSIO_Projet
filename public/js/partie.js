@@ -19,6 +19,7 @@ var game_state = game_states.NONE;
 
 // Server calls
 socket.on('connect', () => {
+    console.log(socket);
     connectionEstablished();
 });
 socket.on('init', init_funct);
@@ -28,17 +29,22 @@ socket.on('add-player', (args) => {
 
 initButton.onclick = () => {
     // TODO: Request Game Code
-    // Then ->
-    init_funct({a: 0});
+    socket.emit('getRoomCode');
+    // init_funct({a: 0});
 };
 
 function init_funct(args) {
     // INIT GAME AND ENTER LOBBY
-
+    var roomCode = args.roomCode;
     game_state = game_states.LOBBY;
 
     gameContainer.style.display = 'inline';
     initContainer.style.display = 'none';
+
+    var roomCodeEle = document.createElement('p');
+    roomCodeEle.classList.add('roomCode');
+    roomCodeEle.innerText = roomCode;
+    gameContainer.append(roomCodeEle);
 
     var player_list_ele = document.createElement('li');
     player_list_ele.classList.add('player-list');

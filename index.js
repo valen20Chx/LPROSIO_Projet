@@ -41,4 +41,13 @@ io.on('connection', (socket) => { // Pour le client
     socket.on('disconnect', () => {
         console.log('New disconnection: ') + socket.id;
     });
+    socket.on('getRoomCode', () => {
+        var code = '0000';
+        console.log('Creating Room: ' + code);
+        // TODO: Recuperer un nouveau code (DB)
+        var obj = {
+            roomCode: code
+        };
+        socket.emit('init', obj);
+    });
 });
