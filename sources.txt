@@ -10,3 +10,47 @@ Articles:
 
 //Firebase
 id du projet : lprosio-projet
+https://firebase.google.com/docs/firestore/query-data/queries
+https://firebase.google.com/docs/firestore/manage-data/add-data
+https://firebase.google.com/docs/firestore/manage-data/structure-data#subcollections //Pour comprendre Les collections
+
+https://firebase.google.com/docs/firestore/rtdb-vs-firestore //COmparaison de FireStore et FireBase
+
+
+
+
+//COde pour firebase storage
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+
+//Code apres avoir ajouter jackBoxSio comme projet
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-analytics.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyDynJXJrx-4loDRF3z3yx_g9_Ku0xI0AZc",
+    authDomain: "lprosio-projet.firebaseapp.com",
+    databaseURL: "https://lprosio-projet.firebaseio.com",
+    projectId: "lprosio-projet",
+    storageBucket: "lprosio-projet.appspot.com",
+    messagingSenderId: "739062856076",
+    appId: "1:739062856076:web:96ed6e662c4dc4a79fbea9",
+    measurementId: "G-5194HP6X9K"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>

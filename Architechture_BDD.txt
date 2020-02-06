@@ -13,8 +13,13 @@ var db = {
         compo: [
             {
                 id: 01,
-                id_joueur: 01,
+                id_joueur: 01, //initialiser a 00 car pas de joueur attribuer
                 docs: [
+                    {
+                        id: 01
+                    }
+                ]
+                docsPlayed: [
                     {
                         id: 01
                     }
@@ -26,9 +31,25 @@ var db = {
         documents: [
             {
                 id: 01, // Int
-                joueur: 01, // Obj ou Id: Int
                 doc: 01 // Doc
+                compo: 04 //int, initialiser a 00 car pas de compo attribuer
             }
         ]
     ]
-};
+}; 
+un joueur charge les images dans la base de donnée
+un document a un identifiant, le doc en lui même, et un id de compo
+une compo recupere aleatoire mon x image (l'id de l'image), ayant un id de compo = 00
+remplis une compo parmit les images a id 00 puis passe a la compo suivante 
+chaque ensemble(compo) a un id de joueur
+chaque ensemble et donné a un joueur, en lui envoyant les images.
+
+chaque compo a le même id que son joueur, compo 2 et joueur 2
+compo:{
+
+    id: 5
+    id_joueur: 5
+    docs: [7, 5 ,1, 2 ,15] //les image on été attribuer dans cette ordre au joueur 5
+    docsPlayed[15, 5, 2, 7, 0] //La un exemple où le joueur a choisi 4 images dans cette ordre la.
+}
+
