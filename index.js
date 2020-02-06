@@ -87,32 +87,6 @@ var setData = docRef.set({
 ////////////////////
 //SET to FireStore//
 
-function playerExist(roomCode, playerName) //ENvoie au client true si exsite
-{
-  console.log('fonction playerExist...');
-      //let query = playerRef.where(selectedVal, '==', wantedVal).get()
-    let roomRef = db.collection('Game').doc(roomCode);
-    let playerRef = roomRef.collection('Joueur').doc(playerName).get()
-    .then(doc => {
-      if (!doc.exists) {
-        console.log('No such document! : getPlayer');
-        sendToClient(false);
-      } else {
-        //console.log('Document data:', doc.data());
-        sendToClient(true);
-      }
-    })
-    .catch(err => {
-      console.log('Error getting document', err);
-      sendToClient(false);
-    });
-
-    console.log("Fin fonction getPlayer");
-    return "Fin Fonction getPlayer";
-}
-  //Test Arrive a la fin avant d'avoir recupere dans la base de donnée et donc return rien.
-//console.log(playerExist("XXXX", "John Test"));
-
 
 function setJoueur(roomCode, nomJoueur, dataPlayer)
 {
@@ -146,7 +120,8 @@ function addPoint(roomCode, playerName, newPoints)
   .catch(err => {
     console.log('Error getting document', err);
   });//TEST OK
-}addPoint2("XXXX", "John Test", 7);
+}
+//addPoint("XXXX", "John Test", 7);
 
 
 
@@ -159,7 +134,35 @@ function sendToClient(object) //Envoie au client des données
 }
 
 
-function partiExist(roomCode)
+function playerExist(roomCode, playerName) //ENvoie au client true si exsite
+{
+  console.log('fonction playerExist...');
+      //let query = playerRef.where(selectedVal, '==', wantedVal).get()
+    let roomRef = db.collection('Game').doc(roomCode);
+    let playerRef = roomRef.collection('Joueur').doc(playerName).get()
+    .then(doc => {
+      if (!doc.exists) {
+        console.log('No such document! : getPlayer');
+        sendToClient(false);
+      } else {
+        //console.log('Document data:', doc.data());
+        sendToClient(true);
+      }
+    })
+    .catch(err => {
+      console.log('Error getting document', err);
+      sendToClient(false);
+    });
+
+    console.log("Fin fonction getPlayer");
+    return "Fin Fonction getPlayer";
+}
+  //Test Arrive a la fin avant d'avoir recupere dans la base de donnée et donc return rien.
+//console.log(playerExist("XXXX", "John Test"));
+
+
+
+function GetParti(roomCode)
 {
   let roomRef = db.collection('Game').doc(roomCode).get()
   .then(doc => {
@@ -168,7 +171,7 @@ function partiExist(roomCode)
       sendToClient(false);
     } else {
       //console.log('Document data:', doc.data());
-      sendToClient(true);
+      sendToClient(roomCode);
     }      
   })
   .catch(err => {
@@ -177,19 +180,42 @@ function partiExist(roomCode)
   });
 }
 
-function affichPlayer(player)
+
+function getCompo(roomCode, playerName, compoType)
 {
-  console.log("fonction affiche ",player);
+  let compo_Get;
+  let roomRef = db.collection('Game').doc(roomCode);
+    let playerRef = roomRef.collection('Joueurs').doc(playerName).collection(Compositions).where('compoType', '==', compoType).get()
+    .then(doc => {
+      if (!doc.exists) {
+        console.log('No such document! : getCompo :', compoType);
+        sendToClient(undefined);
+      } else {
+        //console.log('Document data:', doc.data());
+        compo_Get = doc.data();
+        //sendToClient(compo_Get);
+        callback(compo_Get);
+      }
+    })
+    .catch(err => {
+      console.log('Error getting document', compoType, err);
+      sendToClient(undefined);
+    });
 }
 
+getPlayer("CODE",  "nomJoueur", (data) => {
+  console.log(data.points);
+  return data;
+});
 
-function  getPlayer(roomCode, playerName) //recuperer un objet/variable avec un Id Precis  dans object_Get
+
+function getPlayer(roomCode, playerName, callback) //recuperer un objet/variable avec un Id Precis  dans object_Get
 {
   let player_Get;
   console.log('fonction getPlayer...');
       //let query = playerRef.where(selectedVal, '==', wantedVal).get()
     let roomRef = db.collection('Game').doc(roomCode);
-    let playerRef = roomRef.collection('Joueur').doc(playerName).get()
+    let playerRef = roomRef.collection('Joueurs').doc(playerName).get()
     .then(doc => {
       if (!doc.exists) {
         console.log('No such document! : getPlayer');
@@ -200,8 +226,8 @@ function  getPlayer(roomCode, playerName) //recuperer un objet/variable avec un 
         toGet = doc.data();
         console.log("Mon Player_Get POINTS", player_Get.points);
         console.log("Mon Player_Get idDoc", player_Get.idDoc);
-        affichPlayer(toGet);
-        sendToClient(player_Get);
+        //sendToClient(player_Get);
+        callback(player_Get);
       }
     })
     .catch(err => {
@@ -210,11 +236,10 @@ function  getPlayer(roomCode, playerName) //recuperer un objet/variable avec un 
     });
 
     console.log("Fin fonction getPlayer");
-    return "Fin Fonction getPlayer";
 }// test OK MAIS arrive pas attribuer dans un objet externe
- //getPlayer("XXXX", "John Test"); //Même si appeler apres  n'apas le temps de recuperer
-
-
+// getPlayer("XXXX", "John Test"); //Même si appeler apres  n'apas le temps de recuperer
+//var player = getPlayer("XXXX", "John Test");
+//console.log("PLayer : ",player);
 
 
 
@@ -281,7 +306,7 @@ function uploadImage(roomCode, idImg)
 //TODO REVOIR POUR ENVOYER LE FICHIER AU SERVER
 
     // Create a root reference
-    var storageRef = firebase.storage().ref( roomCode  + '/' + idImg)
+    var storageRef = firebase.storage().ref( roomCode  + '/' + idImg);
 
     //upload file
     storageRef.put(file_1);
@@ -305,7 +330,6 @@ function uploadImage(roomCode, idImg)
 
 
 //Get from Storage (images) //
-
 
 
 
