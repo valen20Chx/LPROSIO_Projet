@@ -1,5 +1,9 @@
-var gameContainer = document.getElementById('game-container');
 var socket = io();
+
+var gameContainer = document.getElementById('game-container');
+var initButton = document.getElementById('init-button');
+var initContainer = document.getElementById('init-container');
+var loadingContainer = document.getElementById('loading-container');
 
 const game_states = {
     NONE: "none",
@@ -14,15 +18,33 @@ var player_list = [];
 var game_state = game_states.NONE;
 
 // Server calls
+socket.on('connect', () => {
+    console.log(socket);
+    connectionEstablished();
+});
 socket.on('init', init_funct);
 socket.on('add-player', (args) => {
     add_player(args);
 });
 
+initButton.onclick = () => {
+    // TODO: Request Game Code
+    socket.emit('getRoomCode');
+    // init_funct({a: 0});
+};
+
 function init_funct(args) {
     // INIT GAME AND ENTER LOBBY
-
+    var roomCode = args.roomCode;
     game_state = game_states.LOBBY;
+
+    gameContainer.style.display = 'inline';
+    initContainer.style.display = 'none';
+
+    var roomCodeEle = document.createElement('p');
+    roomCodeEle.classList.add('roomCode');
+    roomCodeEle.innerText = roomCode;
+    gameContainer.append(roomCodeEle);
 
     var player_list_ele = document.createElement('li');
     player_list_ele.classList.add('player-list');
@@ -69,7 +91,9 @@ function add_player(player) {
 function startGame() {
     if(game_state == game_states.LOBBY) {
         game_state = game_states.PLAYING;
-        document.getElementById('game-container').remove();
+        while(gameContainer.childElementCount > 0) { // Clear the game container
+            gameContainer.removeChild(gameContainer.firstChild);
+        }
 
         // TODO: Start Game
     } else {
@@ -77,9 +101,29 @@ function startGame() {
     }
 }
 
+function connectionEstablished() {
+    loadingContainer.style.display = 'none';
+    initContainer.style.display = 'inline';
+}
+
+function endGame() {
+    game_state = game_states.NONE; // Reset game state
+    while(gameContainer.childElementCount > 0) { // Clear the game container
+        gameContainer.removeChild(gameContainer.firstChild);
+    }
+    gameContainer.style.display = 'none';
+    loadingContainer.style.display = 'none';
+    initContainer.style.display = 'none';
+    var gameOverParagraph = document.createElement('p');
+    gameOverParagraph.innerText = "Game Over.";
+    gameOverParagraph.style.fontSize = "50px";
+    gameOverParagraph.style.fontWeight = "bold";
+    gameOverParagraph.style.fontFamily = "Monospace";
+    document.body.appendChild(gameOverParagraph);
+}
 
 // TEST THE METHODS
 
-init_funct({a: 0});
+// init_funct({a: 0});
 
 // add_player({name: 'valen20'});

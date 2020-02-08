@@ -336,3 +336,14 @@ function uploadImage(roomCode, idImg)
 
 /*Fontion qui creer une ref de partie (code en param)
 pouvoir recuperer un objet partie en fonction du room code (comme une requete)*/
+
+    socket.on('getRoomCode', () => {
+        var code = '0000';
+        console.log('Creating Room: ' + code);
+        // TODO: Recuperer un nouveau code (DB)
+        var obj = {
+            roomCode: code
+        };
+        socket.emit('init', obj);
+    });
+});
