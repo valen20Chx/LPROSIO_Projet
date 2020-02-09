@@ -17,6 +17,8 @@ var player_list = [];
 
 var game_state = game_states.NONE;
 
+var roomCode = null;
+
 // Server calls
 socket.on('connect', () => {
     console.log(socket);
@@ -30,8 +32,14 @@ socket.on('add-player', (args) => {
 initButton.onclick = () => {
     // TODO: Request Game Code
     socket.emit('getRoomCode');
-    // init_funct({a: 0});
 };
+
+socket.on('getRoomCodeRes', (args) => { // TODO: Do serverSide
+    roomCode = args.roomCode;
+    init_funct({
+        roomCode: args.roomCode
+    });
+});
 
 function init_funct(args) {
     // INIT GAME AND ENTER LOBBY
@@ -91,13 +99,76 @@ function add_player(player) {
 function startGame() {
     if(game_state == game_states.LOBBY) {
         game_state = game_states.PLAYING;
-        while(gameContainer.childElementCount > 0) { // Clear the game container
-            gameContainer.removeChild(gameContainer.firstChild);
-        }
 
-        // TODO: Start Game
+        // Start Game
+        // TODO: Explications
+        socket.emit('getTheme', {roomCode: roomCode});
+
     } else {
         console.log('Error startGame: Can\'t start game when not in lobby');
+    }
+}
+
+socket.on('getThemeRes', (args) => {
+    clearGameContainer();
+    var stageTxt = document.createElement('p')
+    stageTxt.classList.add('gmae-stage');
+    stageTxt.innerText = 'Stage ' + args.stage;
+    gameContainer.append(stageTxt);
+
+    var themeTxt = document.createElement('p');
+    themeTxt.classList.add('theme-name'); // TODO : ADD in stylesheet
+    themeTxt.innerText = args.theme;
+    gameContainer.append(themeTxt);
+    
+    var hintTxt = document.createElement('p');
+    hintTxt.classList.add('theme-hint'); // TODO : ADD in stylesheet
+    hintTxt.innerText = 'Envoyez des photos ayant un rapport avec le theme.';
+    gameContainer.append(hintTxt);
+
+    socket.emit('themeDisplayed', {roomCode: roomCode});
+});
+
+socket.on('photoUploadCompleted', (args) => {
+    clearGameContainer();
+    // Redistribution des photos (ServerSide)
+    var consigneEle = document.createElement('p');
+    consigneEle.classList.add('consigne');
+    consigneEle.innerText = 'Rearengez les photos recu pour faire une histoire';
+    gameContainer.append(consigneEle);
+
+    socket.emit('consigneDisplayed', {roomCode: roomCode});
+});
+
+
+// https://stackoverflow.com/questions/26331787/socket-io-node-js-simple-example-to-send-image-files-from-server-to-client
+socket.on('presentation', (args) => {
+    clearGameContainer();
+
+    var playerNameEle = document.createElement('p');
+    playerNameEle.classList.add('presentation-player-name');
+    playerNameEle.innerText = args.playerName;
+    gameContainer.append(playerNameEle);
+
+    var photoArray = [];
+    for(let i = 0; i < args.photos; i++) {
+        let tempCanvas = document.createElement('canvas');
+        let tempCavasCtx = tempCanvas.getContext('2d');
+        let tempPhoto = new Image();
+        tempPhoto.src = 'data:image/jpeg;base64,' + args.photos[i].buffer;
+        tempCavasCtx.drawImage(tempPhoto, 0, 0);
+
+        photoArray.push(tempCanvas);
+
+        gameContainer.append(photoArray[i]);
+    }
+});
+
+// TODO : Continue Here
+
+function clearGameContainer() { // Clear the game container
+    while(gameContainer.childElementCount > 0) { 
+        gameContainer.removeChild(gameContainer.firstChild);
     }
 }
 
