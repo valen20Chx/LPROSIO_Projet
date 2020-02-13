@@ -1,5 +1,7 @@
 class firebase {
     constructor(api_key_file) {
+        this.fs = require('fs'); //creer lire efface fichier/dossier
+        this.Jimp = require('jimp'); //Pour la convertion au format jpg
         this.admin = require("firebase-admin");
         this.serviceAccount = require(api_key_file); //le service account key 
         this.admin.initializeApp({
@@ -9,42 +11,57 @@ class firebase {
 
         this.db = this.admin.firestore();
     }
-
-    creatRoomCode() {
+/////////////////     
+    //ROOM CODE//
+    creatRoomCode() 
+    {
+        console.log('fonction createRoomCode');
         var result = '';
         var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         var charactersLength = characters.length;
-    
-        for (var i = 0; i < length; i++) {
+        let i = 0;
+        for (i = 0; i < 4; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
+        console.log('FIN fonction roomCodeExist');
     }
 
-    roomCodeExist(arrayCodes, roomCode) {
-        for (i = 0; i < arrayCode.lenght; i++) {
-            if (roomCode == arrayCode[i]) {
+    roomCodeExist(arrayCodes, roomCode) //Test OK
+    {
+        console.log('fonction roomCodeExist');
+        let i = 0;
+        for (i = 0; i < arrayCodes.length; i++) {
+            if (roomCode == arrayCodes[i]) {
+                console.log('ArrayCode-',i,' ', arrayCodes[i]);
                 return true;
             }
         }
+        console.log('FIN fonction roomCodeExist');
         return false; //C
     }
 
-    getRoomCode(roomCode, callback) {
+    getNewRoomCode(callback) //Test OK
+    {
+        console.log("function get getRoomCode..");
         let arrayCodes = [];
-        this.db.collection('Game').get()
+        let newRoomCode = this.creatRoomCode();
+        let gameRef =  this.db.collection('Game');
+        let allPartie = gameRef.get()
             .then(snapshot => {
-                if (!snapshot.exists) {
-                    console.log('No such document! : partiExist');
+                if (snapshot.empty) {
+                    console.log('No such document! : getRoomCode');
                     callback(false);
                 } else {
-                    snapshot.array.forEach(element => {
+                    console.log('Recupere tout les roomCode...');
+                    snapshot.forEach(element => {
+                        console.log(element.data());
                         arrayCodes.push(element.roomCode);
                     });
-                    while (roomCodeExist(arrayCodes, roomCode)) {
-                        roomCode = createRoomCode();
+                    while (this.roomCodeExist(arrayCodes, newRoomCode)) {
+                        roomCode = this.creatRoomCode();
                     }
-                    callback(roomCode);
+                    callback(newRoomCode);
                 }
             })
             .catch(err => {
@@ -53,15 +70,19 @@ class firebase {
             });
     }
 
-    setJoueur(roomCode, nomJoueur, dataPlayer) {
+////////////////////////
+    //SET TO FIRESTORE//
+
+    setJoueur(roomCode, nomJoueur, dataPlayer) //Test OK
+    {
         let roomRef = this.db.collection('Game').doc(roomCode);
         let playerRef = roomRef.collection('Joueur').doc(nomJoueur);
         playerRef.set(dataPlayer);
-    }//To test
+    }
 
-    addPoint(roomCode, playerName, newPoints)
+    addPoint(roomCode, playerName, newPoints)//Test OK
     {
-        let roomRef = db.collection('Game').doc(roomCode);
+        let roomRef = this.db.collection('Game').doc(roomCode);
         let playerRef = roomRef.collection('Joueur').doc(playerName);
         playerRef.get()
         .then(doc => {
@@ -77,10 +98,16 @@ class firebase {
         })
         .catch(err => {
             console.log('Error getting document', err);
-        });//TEST OK
+        });
     }
 
-    playerExist(roomCode, playerName, callback) //ENvoie au client true si exsite
+
+///////////////////////////
+    //GET FROM FIRESTORE//
+
+
+    //Envoie au client true si exsite
+    playerExist(roomCode, playerName, callback)  //Test OK
     {
         console.log('fonction playerExist...');
         //let query = playerRef.where(selectedVal, '==', wantedVal).get()
@@ -101,7 +128,8 @@ class firebase {
         });
     }
 
-    GetPartie(roomCode, callback) {
+    GetPartie(roomCode, callback) //To Rework
+    {
         this.db.collection('Game').doc(roomCode).get()
             .then(doc => {
                 if (!doc.exists) {
@@ -110,7 +138,7 @@ class firebase {
                 } else {
                     //console.log('Document data:', doc.data());
                     partie_Get = doc.data();
-                    callback(roomCode);
+                    callback(partie_Get);
                 }
             })
             .catch(err => {
@@ -119,7 +147,8 @@ class firebase {
             });
     }
 
-    getCompo(roomCode, playerName, compoType) {
+    getCompo(roomCode, playerName, compoType) //TO Test
+    {
         let roomRef = this.db.collection('Game').doc(roomCode);
         roomRef.collection('Joueurs').doc(playerName).collection(Compositions).where('compoType', '==', compoType).get()
             .then(doc => {
@@ -137,63 +166,80 @@ class firebase {
             });
     }
 
-    getPlayer(roomCode, playerName, callback) //recuperer un objet/variable avec un Id Precis  dans object_Get
+     //recuperer un objet/variable avec un Id Precis  dans object_Get
+    getPlayer(roomCode, playerName, callback)//Test OK
     {
         let player_Get;
         console.log('fonction getPlayer...');
         //let query = playerRef.where(selectedVal, '==', wantedVal).get()
-        let roomRef = db.collection('Game').doc(roomCode);
+        let roomRef = this.db.collection('Game').doc(roomCode);
         roomRef.collection('Joueurs').doc(playerName).get()
             .then(doc => {
                 if (!doc.exists) {
                     console.log('No such document! : getPlayer');
-                    sendToClient(undefined);
+                    callback(undefined);
                 } else {
                     //console.log('Document data:', doc.data());
                     player_Get = doc.data();
-                    toGet = doc.data();
                     console.log("Mon Player_Get POINTS", player_Get.points);
-                    console.log("Mon Player_Get idDoc", player_Get.idDoc);
                     //sendToClient(player_Get);
                     callback(player_Get);
                 }
             })
             .catch(err => {
                 console.log('Error getting document', err);
-                sendToClient(undefined);
+                callback(undefined);
             });
 
         console.log("Fin fonction getPlayer");
     }
 
-    getAllPlayer(roomCode) //TO FINISH
+    //Retourne un tableau de tout les joueurs
+    getAllPlayer(roomCode, callback) //TEST OK
     {
-        let query = db.collection('Game').doc(roomCode).collection('Joueur').get()
+        let query = this.db.collection('Game').doc(roomCode).collection('Joueurs').get()
             .then(snapshot => {
                 if (snapshot.empty) {
                     console.log('No matching documents.');
                     return 0;
                 }
-                var tabPlayer = tab[10];
-                let id = 0;
+                var tabPlayer = [];
                 snapshot.forEach(doc => {
                     console.log(doc.id, '=>', doc.data());
-                    tabPlayer[id] = doc.data();
-                    id++;
+                    tabPlayer.push(doc.data());
                 });
-                sendToClient(tabPlayer);
+                callback(tabPlayer);
             })
             .catch(err => {
                 console.log('Error getting documents', err);
             });
     }
 
-    getPayerByPoint() {
-        let playerRef = roomRef.collection('Joueur');
-        let query = playerRef.orderBy("points");
+    getPlayerByPoint(roomCode, callback) //TEST OK
+    {
+        let roomRef = this.db.collection('Game').doc(roomCode);
+        let playerRef = roomRef.collection('Joueurs');
+        let query = playerRef.orderBy("points").get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                console.log('No matching documents.');
+                return 0;
+            }
+            var tabPlayer = [];
+            snapshot.forEach(doc => {
+                console.log(doc.id, '=>', doc.data());
+                tabPlayer.push(doc.data());
+            });
+            callback(tabPlayer);
+        })
+        .catch(err => {
+            console.log('Error getting documents', err);
+        });
     }
+    
 
-    deleteDocument(roomCode, playerName) {
+    deleteDocument(roomCode, playerName) //TEST OK
+    {
         // [START delete_document]
         let roomRef = db.collection('Game').doc(roomCode);
         let playerRef = roomRef.collection('Joueur').doc(playerName).delete()   // [END delete_document]
@@ -203,25 +249,153 @@ class firebase {
         });
     }
 
-    uploadImage(roomCode, idImg) {
-        //Get elements
-    
-    
-        //Listen for file elements Sub
-        subFle_1.addEventListener('click', function (e) { //en cliquant sur "validé"
-    
-            //Get file
-            var file_1 = e.target.file[0]  //ligne incomprise           
-    
-            //TODO REVOIR POUR ENVOYER LE FICHIER AU SERVER
-    
-            // Create a root reference
-            var storageRef = firebase.storage().ref(roomCode + '/' + idImg);
-    
-            //upload file
-            storageRef.put(file_1);
-        })
+////////////////////////
+    //IMAGES//
+
+
+
+    attribueIdImages(nbImgPlayer, nbPlayer)
+    {
+        ArrImg = [nbImgPlayer*nbPlayer]
+        for(let p = 0; p < ArrImg.length; i++){ArrImg[p] = 0;} //init
+        let idImg = 0;
+        for(let i = 1; i < nbPlayer; i++)
+        {
+            for(let j = 0; j<nbImgPlayer; j++)
+            {
+                while(ArrImg[idImg] != 0 )
+                {
+                    Math.floor((Math.random() * ArrImg.length) + 0);
+                }
+                ArrImg[idImg] = i; //attribue le joueur
+            }
+        }
+        return ArrImg;
     }
+
+    distribueIdImage(roomCode, arrImg, nbPlayer)
+    {
+        for(let i = 1; i<nbPlayer; i++)
+        {
+            let arrImg_toSet = [];
+            for(let j = 0; j<arrImg.length; j++)
+            {
+                if(arrImg[j] == i)
+                {
+                    //appelle la fonction pour mettre dans fireStore
+                    set_CompoGet(roomCode, i, arrImg_toSet);
+                }
+            }
+        }
+    }
+
+    set_CompoGet(roomCode, id, arrImg_toSet)//TO TEST
+    {
+        let roomRef = this.db.collection('Game').doc(roomCode);
+        let playerRef = roomRef.collection('Joueurs').where('id','==', id);
+        let compoRef = playerRef.collection('Compositions').doc('GET');
+        compoRef.set(arrImg_toSet);
+    }
+
+    //recupere le nombre d'image et l'augmente de 1 
+    get_incrementeNbImg(roomCode, callback) //TO TEST
+    {
+        let roomRef = this.db.collection('Game').doc(roomCode);
+       roomRef.get()
+        .then(doc => {
+            if (!doc.exists) {
+            console.log('No such document! : addPoint');
+            } else {
+            //console.log('Document data:', doc.data());
+            let gameData =  doc.data();
+            callback(gameData.nbImages + 1 );
+            playerRef.update({nbImages: gameData.nbImages += 1});
+            }      
+        })
+        .catch(err => {
+            console.log('Error getting document', err);
+        });
+    }
+
+
+
+    createDIR(roomCode)
+    {
+        try{
+            fs.mkdirSync('Game/' + roomCode) //creer le fichier du nom du roomCode
+            }catch(err){
+            if(err.code == 'EEXIST')
+            {
+              console.log("Le fichier Game existe deja !");
+            }
+            else console.log(err);
+          }
+    }
+
+
+    getExtention(nameFile)
+    {
+    let extention;
+    let chaineSepare = nameFile.split('.')
+    extention = chaineSepare[chaineSepare.length - 1];
+    return '.' + extention;
+    }
+
+
+
+    //Charge les images dans les dossié
+    uploadImage(req, roomCode) //TO TEST
+    {
+        
+        console.log("Image Recuperée" + req.files);
+	if(req.files.upfile){
+	  var file = req.files.upfile,
+		name = file.name, 
+        type = file.mimetype;
+
+        get_incrementeNbImg(roomCode, nbImages =>{ 
+
+            let idImage = nbImages.nbImages;
+            //var uploadpath = __dirname + '/Game/' + name;
+            ext = getExtention(name);
+            let uploadpath = __dirname + '/Game/' + roomCode + '/'
+            var uploadpathImg = uploadpath + idImage + ext; //TODO afficher l'id
+    
+            console.log("uploadpath : " + uploadpath);
+    
+            file.mv(uploadpathImg,function(err){
+              if(err){
+                console.log("File Upload Failed",name, err);
+                res.send("Error Occured !")
+              }
+              else {
+                console.log("File Uploaded",name);
+                res.send('Done! Uploading files')
+    
+                //CONVERTION EN jpg
+                if(ext.localeCompare('.jpg') != 0 ) //Si pas egale
+                {
+                this.Jimp.read(uploadpathImg, (err, img) => {
+                  if (err) throw err;
+                  img
+                    .resize(256, 256) // resize
+                    .quality(60) // set JPEG quality
+                    .write(uploadpath + idImage + '.jpg'); // save
+                });
+                //SUPPRESSION image != jpg
+                this.fs.unlinkSync(uploadpathImg);
+               }
+              }
+            });
+
+        })
+		
+	}
+	else {
+	  res.send("No File selected !");
+	  res.end();
+    } 
+
 }
 
 module.exports = firebase;

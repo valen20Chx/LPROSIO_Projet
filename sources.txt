@@ -3,8 +3,8 @@ Node Modules:
     Firebase : https://www.npmjs.com/package/firebase
 
 Videos:
-
-
+https://www.youtube.com/watch?v=Ejgd-la6nSY
+https://www.youtube.com/watch?v=U57kU311-nE
 Articles:
 
 

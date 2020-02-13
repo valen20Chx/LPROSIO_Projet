@@ -6,6 +6,10 @@ var io = require('socket.io')(http);
 // const hostname = '127.0.0.1';
 const port = 3000;
 
+
+var upload = require('express-fileupload');
+
+app.use(upload()); // configure middleware
 app.use(express.static(__dirname + '/public'));
 
 http.listen(port, () => {
@@ -14,6 +18,13 @@ http.listen(port, () => {
 
 var firebaseMod = new require('./firebase');
 var firebase = new firebaseMod("./lprosio-projet-firebase-adminsdk-fk5af-4e315c4f6e.json");
+
+
+
+
+firebase.getPlayer('CODE', 'nomJoueur3',callback =>{
+		console.log(callback.points); //les points du joueur i
+})
 
 // app.get('/', (req, res) => {
 //     res.setHeader('Content-Type', 'text/html');
@@ -40,3 +51,9 @@ io.on('connection', (socket) => { // Pour le client
 		socket.emit('init', obj);
 	});
 });
+
+///////////////
+////IMAGES////
+app.post('/upload',function(req,res, roomCode){
+	firebase.uploadImage(req, roomCode)
+	};
