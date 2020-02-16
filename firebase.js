@@ -1,7 +1,5 @@
 const fs = require('fs'); //creer lire efface fichier/dossier
-class firebase {
-    constructor(api_key_file) {
-        //this.Jimp = require('jimp'); //Pour la convertion au format jpg
+
 class firebase {
     constructor(api_key_file) {
         this.admin = require("firebase-admin");
@@ -76,10 +74,10 @@ class firebase {
 ////////////////////////
     //SET TO FIRESTORE//
 
-    setJoueur(roomCode, nomJoueur, dataPlayer) //Test OK
+    setJoueur(roomCode, PlayerName, dataPlayer) //Test OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueur').doc(nomJoueur);
+        let playerRef = roomRef.collection('Players').doc(PlayerName);
         playerRef.set(dataPlayer);
     }
 
@@ -88,7 +86,7 @@ class firebase {
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
 
-        let playerRef = roomRef.collection('Joueur').doc(playerName);
+        let playerRef = roomRef.collection('Players').doc(playerName);
         playerRef.get()
         .then(doc => {
             if (!doc.exists) {
@@ -109,36 +107,36 @@ class firebase {
     set_CompoRecieve(roomCode, idPlayer, arrImgToSet)//TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        this.getPlayerById('CODE', 1, player =>{
+        this.getPlayerById('CODE', idPlayer, player =>{
             let playerName =  player[0].nom;
             console.log("Nom Recu : " + playerName);
-            let playerRef = roomRef.collection('Joueurs').doc(playerName);
+            let playerRef = roomRef.collection('Players').doc(playerName);
             let compoRef = playerRef.collection('Compositions').doc('Get');
             compoRef.set(arrImgToSet);
         })
                
     }
 
-    set_CompoSet(roomCode, playerName, arrImgToSet)//TO TEST
+    set_CompoSet(roomCode, playerName, arrImgToSet)//TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueurs').doc(playerName);
-        let compoRef = playerRef.collection('Compositions').doc('SET');
+        let playerRef = roomRef.collection('Players').doc(playerName);
+        let compoRef = playerRef.collection('Compositions').doc('Set');
         compoRef.set(arrImgToSet);
     }
 
-    set_CompoChosen(roomCode, playerName, arrImgToSet)//TO TEST
+    set_CompoChosen(roomCode, playerName, arrImgToSet)//TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueurs').doc(playerName);
-        let compoRef = playerRef.collection('Compositions').doc('CHOSEN');
+        let playerRef = roomRef.collection('Players').doc(playerName);
+        let compoRef = playerRef.collection('Compositions').doc('Chosen');
         compoRef.set(arrImgToSet);
     }
 
     set_Titre(roomCode, playerName, titre) //TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueurs').doc(playerName);
+        let playerRef = roomRef.collection('Players').doc(playerName);
         let compoRef = playerRef.collection('Compositions').doc('CHOSENNN');
         compoRef.set(titre);
     }
@@ -152,7 +150,7 @@ class firebase {
         console.log('fonction playerExist...');
         //let query = playerRef.where(selectedVal, '==', wantedVal).get()
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueur').doc(playerName).get()
+        let playerRef = roomRef.collection('Players').doc(playerName).get()
         .then(doc => {
         if (!doc.exists) {
             console.log('No such document! : getPlayer');
@@ -168,7 +166,7 @@ class firebase {
         });
     }
               
-    getPartie(roomCode, callback) //To 
+    getPartie(roomCode, callback) //TEST OK
     {
         this.db.collection('Game').doc(roomCode).get()
             .then(doc => {
@@ -190,7 +188,7 @@ class firebase {
     getCompo(roomCode, playerName, compoType, callback) //TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        roomRef.collection('Joueurs').doc(playerName).collection('Compositions').doc(compoType).get()
+        roomRef.collection('Players').doc(playerName).collection('Compositions').doc(compoType).get()
             .then(doc => {
                 if (!doc.exists) {
                     console.log('No such document! : getCompo :', compoType);
@@ -213,7 +211,7 @@ class firebase {
         console.log('fonction getPlayer...');
         //let query = playerRef.where(selectedVal, '==', wantedVal).get()
         let roomRef = this.db.collection('Game').doc(roomCode);
-        roomRef.collection('Joueurs').doc(playerName).get()
+        roomRef.collection('Players').doc(playerName).get()
             .then(doc => {
                 if (!doc.exists) {
                     console.log('No such document! : getPlayer');
@@ -237,7 +235,7 @@ class firebase {
     //Retourne un tableau de tout les joueurs
     getAllPlayer(roomCode, callback) //TEST OK
     {
-        let query = this.db.collection('Game').doc(roomCode).collection('Joueurs').get()
+        let query = this.db.collection('Game').doc(roomCode).collection('Players').get()
             .then(snapshot => {
                 if (snapshot.empty) {
                     console.log('No matching documents.');
@@ -258,7 +256,7 @@ class firebase {
     getPlayerByPoint(roomCode, callback) //TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueurs');
+        let playerRef = roomRef.collection('Players');
         let query = playerRef.orderBy("points").get()
         .then(snapshot => {
             if (snapshot.empty) {
@@ -280,17 +278,17 @@ class firebase {
     getPlayerById(roomCode, idPlayer, callback)//TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueurs').where('id','==', idPlayer).get()
+        let playerRef = roomRef.collection('Players').where('id','==', idPlayer).get()
         .then(snapshot => {
             if (snapshot.empty) {
                 console.log('No matching documents.');
                 return 0;
             }
             var tabPlayer = [];
-            snapshot.forEach(doc => {
-                console.log(doc.id, '=>', doc.data());
+            snapshot.forEach(doc => { 
                 tabPlayer.push(doc.data()); //Normalement 1 seul
             });
+            //console.log(tabPlayer);
             callback(tabPlayer);
         })
         .catch(err => {
@@ -306,28 +304,24 @@ class firebase {
     {
         // [START delete_document]
         let roomRef = this.db.collection('Game').doc(roomCode);
-        let playerRef = roomRef.collection('Joueur').doc(playerName).delete()   // [END delete_document]
+        let playerRef = roomRef.collection('Players').doc(playerName).delete()   // [END delete_document]
     
         return playerRef.then(res => {
             console.log('Delete: ', res);
         });
     }
 
-    deleteParti(roomCode) //To test
+    deleteParti(roomCode) //TEST OK
     {
         // [START delete_document]
         let roomRef = this.db.collection('Game').doc(roomCode);
         roomRef.delete();   // [END delete_document]
-    
-       /* return roomRef.then(res => {
-            console.log('Delete: ', res);
-        });*/
     }
 
     deleteCompo(roomCode, compoType)
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
-        roomRef.collection('Joueurs').doc(playerName).collection(Compositions).doc(compoType).delete
+        roomRef.collection('Players').doc(playerName).collection(Compositions).doc(compoType).delete
     }
 
     
@@ -338,14 +332,14 @@ class firebase {
 
 
 
-    attribueIdImages(nbImgPlayer, nbPlayer)
+    attribueIdImages(nbPlayer, nbImgPlayer)//TEST OK
     {
         let ArrImg = [];
         for(let p = 0; p < nbImgPlayer*nbPlayer; p++){
             ArrImg.push(0);
         } //init
         let idImg;
-        console.log(ArrImg.length);
+        //console.log(ArrImg.length);
 
         for(let i = 1; i < nbPlayer + 1; i++)
         {
@@ -359,29 +353,33 @@ class firebase {
                 ArrImg[idImg] = i; //attribue le joueur
             }
         }
-        console.log("FIN ATTRIBUE img");
+        console.log(ArrImg + " FIN ATTRIBUE img");
         return ArrImg;
     }
 
-    distribueIdImage(roomCode, arrImg, nbPlayer)
+    distribueIdImage(roomCode, arrImg, nbPlayer)//TEST OK
     {
-        for(let i = 1; i<nbPlayer; i++)
+        for(let i = 1; i<nbPlayer+1; i++)
         {
-            let arrImg_toSet = [];
+            let arrImg_toDo = [];
             for(let j = 0; j<arrImg.length; j++)
             {
                 if(arrImg[j] == i)
                 {
+                    arrImg_toDo.push(j);
                     //appelle la fonction pour mettre dans fireStore
-                    set_CompoGet(roomCode, i, arrImg_toSet);
                 }
+            } 
+            let arrImg_toSet = {
+                idImg : arrImg_toDo
             }
+            this.set_CompoRecieve(roomCode, i, arrImg_toSet);
         }
     }
 
    
     //recupere le nombre d'image et l'augmente de 1 
-    get_incrementeNbImg(roomCode, callback) //TO TEST
+    get_incrementeNbImg(roomCode, callback) //TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
        roomRef.get()
@@ -542,5 +540,6 @@ class firebase {
 	  res.end();
     } 
 }*/
+
 }
 module.exports = firebase;

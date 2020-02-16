@@ -16,15 +16,15 @@ SET
     setJoueur(roomCode, nomJoueur, dataPlayer) //Test OK
     addPoint(roomCode, playerName, newPoints)//Test OK
     set_CompoRecieve(roomCode, idPlayer, arrImgToSet)//TEST OK
-    set_CompoSet(roomCode, playerName, arrImgToSet)//TO TEST
-    set_CompoChosen(roomCode, playerName, arrImgToSet)//TO TEST
+    set_CompoSet(roomCode, playerName, arrImgToSet)//TEST OK
+    set_CompoChosen(roomCode, playerName, arrImgToSet)//TEST OK
     set_Titre(roomCode, playerName, titre) //TEST OK
 
 
 
 GET
     playerExist(roomCode, playerName, callback)  //Test OK
-    getPartie(roomCode, callback) //To 
+    getPartie(roomCode, callback) //TEST OK 
     getCompo(roomCode, playerName, compoType) //TEST OK
     getPlayer(roomCode, playerName, callback)//Test OK
     getAllPlayer(roomCode, callback) //TEST OK
@@ -41,7 +41,7 @@ SUPP
 
 IMAGES
     attribueIdImages(nbImgPlayer, nbPlayer)//TEST OK
-    distribueIdImage(roomCode, arrImg, nbPlayer)//TO TEST
+    distribueIdImage(roomCode, arrImg, nbPlayer)//TEST OK
     get_incrementeNbImg(roomCode, callback) //TEST OK
 
 FICHIER IMAGES
