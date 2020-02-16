@@ -2,6 +2,8 @@ const fs = require('fs'); //creer lire efface fichier/dossier
 class firebase {
     constructor(api_key_file) {
         //this.Jimp = require('jimp'); //Pour la convertion au format jpg
+class firebase {
+    constructor(api_key_file) {
         this.admin = require("firebase-admin");
         this.serviceAccount = require(api_key_file); //le service account key 
         this.admin.initializeApp({
@@ -69,7 +71,6 @@ class firebase {
                 callback(false);
             });
     }
-
   
 
 ////////////////////////
@@ -86,6 +87,7 @@ class firebase {
     addPoint(roomCode, playerName, newPoints)//Test OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
+
         let playerRef = roomRef.collection('Joueur').doc(playerName);
         playerRef.get()
         .then(doc => {
@@ -165,7 +167,7 @@ class firebase {
         callback(false);
         });
     }
-
+              
     getPartie(roomCode, callback) //To 
     {
         this.db.collection('Game').doc(roomCode).get()
