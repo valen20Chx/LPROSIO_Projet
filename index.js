@@ -148,8 +148,31 @@ io.of('/player').on('connection', (socket)  => {
 		});
 
 		if(io.of('/host').in(socket.roomCode).nbUploads >= io.of('/host').in(socket.roomCode).nbPlayers) {
+			// TODO : Mix photos
+
+
 			io.of('/host').in(socket.roomCode).emit('photoUploadCompleted');
 			io.of('/host').in(socket.roomCode).nbUploads = 0;
+
+			let servCount = 0;
+
+			io.of('/player').in(socket.roomCode).clients.forEach(element => {
+				const cliSock = io.to(element.id);
+
+				let imagesDataArray = [];
+				let imagesDataArrayId = [];
+				
+				let playername = cliSock.playerName;
+
+				// TODO : Serve Images (Compo get)
+
+				cliSock.emit('player-make-story', {
+					images: imagesDataArray,
+					imagesId: imagesDataArrayId
+				});
+
+				serveCount++;
+			});
 		}
 
 		socket.emit('player-upload-images-ok');
@@ -157,7 +180,7 @@ io.of('/player').on('connection', (socket)  => {
 
 	socket.on('player-upload-compo', (args) => {
 		args.images.forEach(element => {
-			// TODO: add element (photo) to DB as composition
+			// TODO: add element (photo id) to DB as composition
 		});
 
 		if(io.of('/host').in(socket.roomCode).nbCompo >= io.of('/host').in(socket.roomCode).nbPlayers) {

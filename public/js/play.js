@@ -105,8 +105,8 @@ socket.on('player-upload-images-ok', () => {
     gameContainer.append(waitTxt);
 });
 
-socket.on('player-make-story', (args) => {
-    let compositionId = [];
+socket.on('player-make-story', (args) => { // TODO : Verify (RISKY)
+    let compositionIndex = [];
     let composition = [];
     for (let index = 0; index < args.images.length; index++) {
         const element = args.images[index];
@@ -117,10 +117,10 @@ socket.on('player-make-story', (args) => {
 
         newImg.addEventListener('click', () => {
             if(newImg.className == 'image-play') {
-                compositionId.push(composition.indexOf(newImg));
+                compositionIndex.push(composition.indexOf(newImg));
                 newImg.className = 'image-played';
             } else if(newImg.className == 'image-played') {
-                compositionId.splice(composition.indexOf(newImg));
+                compositionIndex.splice(composition.indexOf(newImg));
                 newImg.className = 'image-play';
             }
         });
@@ -130,13 +130,13 @@ socket.on('player-make-story', (args) => {
         submitBtn.value = 'Submit';
 
         submitBtn.addEventListener('click', () => {
-            if(compositionId.length >= args.compoMinSize) {
-                let imagesDataArray = [];
-                for (let index = 0; index < compositionId.length; index++) {
-                    imagesDataArray.push(composition[compositionId[index]].src);
+            if(compositionIndex.length >= args.compoMinSize) {
+                let compoIds = [];
+                for (let index = 0; index < compositionIndex.length; index++) {
+                    compoIds.push(args.imagesId[compositionIndex[index]]);
                 }
                 socket.emit('player-upload-compo', {
-                    images: imagesDataArray
+                    images: compoIds
                 });
             }
         });
