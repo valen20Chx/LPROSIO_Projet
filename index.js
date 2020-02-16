@@ -115,6 +115,7 @@ io.of('/host').on('connection', (socket) => {
 	}
 });
 
+
 //// PLAYER HERE
 io.of('/player').on('connection', (socket)  => {
 	

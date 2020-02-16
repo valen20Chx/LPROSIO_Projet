@@ -20,6 +20,8 @@ let game_state = game_states.NONE;
 
 let roomCode = null;
 
+var roomCode = null;
+
 // Server calls
 socket.on('connect', () => {
     console.log(socket);
@@ -41,6 +43,13 @@ initButton.onclick = () => {
         roomCode = args.roomCode;
     });
 };
+
+socket.on('getRoomCodeRes', (args) => { // TODO: Do serverSide
+    roomCode = args.roomCode;
+    init_funct({
+        roomCode: args.roomCode
+    });
+});
 
 function init_funct(args) {
     // INIT GAME AND ENTER LOBBY
@@ -112,7 +121,7 @@ function startGame() {
 
 socket.on('getThemeRes', (args) => {
     clearGameContainer();
-    let stageTxt = document.createElement('p')
+    let stageTxt = document.createElement('p');
     stageTxt.classList.add('gmae-stage');
     stageTxt.innerText = 'Stage ' + args.stage;
     gameContainer.append(stageTxt);
@@ -126,7 +135,6 @@ socket.on('getThemeRes', (args) => {
     hintTxt.classList.add('theme-hint'); // TODO : ADD in stylesheet
     hintTxt.innerText = 'Envoyez des photos ayant un rapport avec le theme.';
     gameContainer.append(hintTxt);
-
     socket.emit('themeDisplayed');
 });
 
@@ -137,7 +145,6 @@ socket.on('photoUploadCompleted', () => {
     consigneEle.classList.add('consigne');
     consigneEle.innerText = 'Rearengez les photos recu pour faire une histoire';
     gameContainer.append(consigneEle);
-
     socket.emit('consigneDisplayed');
 });
 
@@ -205,7 +212,6 @@ socket.on('vote-screen', () => {
         }
     });
 });
-
 
 // TODO : Continue Here
 

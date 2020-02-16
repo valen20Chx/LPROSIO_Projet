@@ -1,0 +1,53 @@
+
+ROOM CODE
+createRoomCode //creer Table
+
+    creatRoomCode() //TEST OK
+    roomCodeExist(arrayCodes, roomCode) //Test OK
+    getNewRoomCode(callback) //Test OK
+    
+    
+
+
+FIRESTORE 
+
+SET
+
+    setJoueur(roomCode, nomJoueur, dataPlayer) //Test OK
+    addPoint(roomCode, playerName, newPoints)//Test OK
+    set_CompoRecieve(roomCode, idPlayer, arrImgToSet)//TEST OK
+    set_CompoSet(roomCode, playerName, arrImgToSet)//TO TEST
+    set_CompoChosen(roomCode, playerName, arrImgToSet)//TO TEST
+    set_Titre(roomCode, playerName, titre) //TEST OK
+
+
+
+GET
+    playerExist(roomCode, playerName, callback)  //Test OK
+    getPartie(roomCode, callback) //To 
+    getCompo(roomCode, playerName, compoType) //TEST OK
+    getPlayer(roomCode, playerName, callback)//Test OK
+    getAllPlayer(roomCode, callback) //TEST OK
+    getPlayerByPoint(roomCode, callback) //TEST OK
+    getPlayerById(roomCode, idPlayer, callback)//TEST OK
+
+getTITRE //TO DO
+
+SUPP
+    deletePlayer(roomCode, playerName) //TEST OK
+    deleteParti(roomCode) //TEST OK
+    deleteCompo(roomCode, compoType)//TEST OK
+
+
+IMAGES
+    attribueIdImages(nbImgPlayer, nbPlayer)//TEST OK
+    distribueIdImage(roomCode, arrImg, nbPlayer)//TO TEST
+    get_incrementeNbImg(roomCode, callback) //TEST OK
+
+FICHIER IMAGES
+    createDIR(roomCode)//TEST OK
+    creatFileImg(roomCode, contenuImg)//TEST OK
+    deleteFileImg(roomCode, idImage) //TEST OK
+    readFileImg(roomCode, idImage, callback) //TEST OK
+
+
