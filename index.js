@@ -7,9 +7,7 @@ var io = require('socket.io')(http);
 const port = 3000;
 
 
-var upload = require('express-fileupload');
 
-app.use(upload()); // configure middleware
 app.use(express.static(__dirname + '/public'));
 
 http.listen(port, () => {
@@ -20,21 +18,29 @@ var firebaseMod = new require('./firebase');
 var firebase = new firebaseMod("./lprosio-projet-firebase-adminsdk-fk5af-4e315c4f6e.json");
 
 
-
-
+/*
 firebase.getPlayer('CODE', 'nomJoueur3',callback =>{
 		console.log(callback.points); //les points du joueur i
 })
+*/
+var player = {
+	nom : "oooo",
+	nombre : 4
+}
 
-// app.get('/', (req, res) => {
-//     res.setHeader('Content-Type', 'text/html');
-//     res.statusCode = 200;
-//     res.sendFile(__dirname + '/public' + '/index.html');
-// });
+var compoGet = {
+	idImg : [7,2]
+}
 
+ var titre = {
+	 titre : "tItRE CoMpOSiTiOn"
+ }
+
+
+console.log(firebase.attribueIdImages(5, 4));
 //////////////////////
 //    Socket.io
-//////////////////////
+/////////////////////
 
 io.on('connection', (socket) => { // Pour le client
 	console.log('New connection: ' + socket.id);
@@ -54,6 +60,4 @@ io.on('connection', (socket) => { // Pour le client
 
 ///////////////
 ////IMAGES////
-app.post('/upload',function(req,res, roomCode){
-	firebase.uploadImage(req, roomCode)
-	};
+//firebase.creatFileImg("CODE")
