@@ -2,3 +2,5 @@ commencé avec realTime database rendu compte que pas de requetes
 Storage n'utilise pas node donc peut pas utiliser pour stocker image
 Recuperation asyncronique resoolu en callback
 Enrregistrement l'image en elle même mais compliquer de convertir (des heure de travaille perdu)
+
+Acces a socket.roomCode 

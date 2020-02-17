@@ -18,6 +18,8 @@ submit_connect.addEventListener('click', (ev) => {
         err_msg.innerText = 'Room Code is empty';
     } else {
         // Connect
+        console.log('Trying to connect to ' + txt_roomcode.value);
+        
         socket.emit('playerConnect', {
             username: txt_username.value,
             roomCode: txt_roomcode.value
@@ -30,11 +32,12 @@ submit_connect.addEventListener('click', (ev) => {
 
             if(isVip) {
                 let startBtn = document.createElement('button');
-                startBtn.classList('start-button');
+                startBtn.classList.add('start-button');
                 startBtn.innerText = 'Start game';
                 startBtn.addEventListener('click', () => {
                     socket.emit('player-startGame');
                 });
+                gameContainer.append(startBtn);
             }
         });
 
@@ -47,17 +50,16 @@ submit_connect.addEventListener('click', (ev) => {
 
 socket.on('player-uploadPage', (args) => {
     clearGameContainer();
-
+    console.log('upload page');
     let submitBtn = document.createElement('button');
     submitBtn.classList.add('image-submit-button');
     submitBtn.id = 'image-submit';
-    submitBtn.value = 'Submit'
+    submitBtn.innerText = 'Submit';
 
     for (let index = 0; index < args.nbPhotos; index++) {
         let newInputImage = document.createElement('input');
         newInputImage.type = 'file';
         newInputImage.classList.add('input-image');
-
 
         gameContainer.append(newInputImage);
     }
@@ -68,7 +70,8 @@ socket.on('player-uploadPage', (args) => {
         if(() => {
             const validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
             let valid = false;
-            document.querySelector('.input-image').forEach(element => {
+            let inputImageEles = document.getElementsByClassName('input-image');
+            inputImageEles.forEach(element => {
                 if(element.value = '') {
                     valid = true;
                 } else if(!validImageTypes.includes(element['type'])) {
@@ -78,11 +81,12 @@ socket.on('player-uploadPage', (args) => {
             return valid;
         }) { // If input 'array' is valid
             let imageDataArray = [];
-            document.querySelector('.input-image').forEach(element => {
-                getBase64(element.value, (imageData) => {
+            let imageArrayEle = document.getElementsByClassName('input-image');
+            for(let index = 0; index < imageArrayEle.length; index++) {
+                getBase64(imageArrayEle[index].files[0], (imageData) => {
                     imageDataArray.push(imageData);
                 });
-            });
+            }
             socket.emit('player-upload-images', {
                 photos: imageDataArray
             });
@@ -125,25 +129,33 @@ socket.on('player-make-story', (args) => { // TODO : Verify (RISKY)
             }
         });
 
-        let submitBtn = document.createElement('button');
-        submitBtn.classList.add('composition-submit');
-        submitBtn.value = 'Submit';
-
-        submitBtn.addEventListener('click', () => {
-            if(compositionIndex.length >= args.compoMinSize) {
-                let compoIds = [];
-                for (let index = 0; index < compositionIndex.length; index++) {
-                    compoIds.push(args.imagesId[compositionIndex[index]]);
-                }
-                socket.emit('player-upload-compo', {
-                    images: compoIds
-                });
-            }
-        });
-
         composition.push(newImg);
         gameContainer.append(newImg);
     }
+
+    let titleTxt = document.createElement('input');
+    titleTxt.type = 'text';
+    submitBtn.classList.add('composition-title');
+
+    let submitBtn = document.createElement('button');
+    submitBtn.classList.add('composition-submit');
+    submitBtn.value = 'Submit';
+
+    submitBtn.addEventListener('click', () => {
+        if(compositionIndex.length >= args.compoMinSize || titleTxt.value != '') {
+            let compoIds = [];
+            for (let index = 0; index < compositionIndex.length; index++) {
+                compoIds.push(args.imagesId[compositionIndex[index]]);
+            }
+            socket.emit('player-upload-compo', {
+                images: compoIds,
+                title: titleTxt.value
+            });
+        }
+    });
+
+    gameContainer.append(titleTxt);
+    gameContainer.append(submitBtn);
 });
 
 socket.on('player-upload-compo-ok', () => {
@@ -198,7 +210,7 @@ socket.on('player-vote-ok', () => {
 
 // Utilitees
 function clearGameContainer() {
-    gameContainer.children.forEach(element => {
-        element.remove();
-    });
+    while(gameContainer.childElementCount > 0) { 
+        gameContainer.removeChild(gameContainer.firstChild);
+    }
 }

@@ -20,40 +20,19 @@ let game_state = game_states.NONE;
 
 let roomCode = null;
 
-var roomCode = null;
-
 // Server calls
 socket.on('connect', () => {
-    console.log(socket);
-    connectionEstablished();
+    loadingContainer.style.display = 'none';
+    initContainer.style.display = 'inline';
 });
-
-socket.on('init', init_funct);
-
-socket.on('add-player', (args) => {
-    add_player(args);
-});
-
-socket.on('startGame', startGame);
 
 initButton.onclick = () => {
     socket.emit('getRoomCode');
-
-    socket.on('game-launched', (args) => {
-        roomCode = args.roomCode;
-    });
 };
 
-socket.on('getRoomCodeRes', (args) => { // TODO: Do serverSide
-    roomCode = args.roomCode;
-    init_funct({
-        roomCode: args.roomCode
-    });
-});
-
-function init_funct(args) {
+socket.on('init', (args) => {
     // INIT GAME AND ENTER LOBBY
-    let roomCode = args.roomCode;
+    roomCode = args.roomCode;
     game_state = game_states.LOBBY;
 
     gameContainer.style.display = 'inline';
@@ -82,14 +61,14 @@ function init_funct(args) {
         player_list_ele.appendChild(player_ele);
         player_ele.appendChild(player_image_ele);
         player_ele.appendChild(player_name_ele);
-        console.log('Test');
     }
     gameContainer.appendChild(player_list_ele);
-}
+});
 
-function add_player(player) {
+socket.on('add-player', (player) => {
+    console.log('adding player : ' + player);
     if(game_state == game_states.LOBBY) {
-        if(player_list.length < MAX_PLAYER) { // Correct amount of player
+        if(player_list.length < MAX_PLAYER) {
             player_list.push(player);
 
             let player_img_ele = document.getElementsByClassName('player-img').item(player_list.length - 1);
@@ -104,9 +83,9 @@ function add_player(player) {
     } else { // Not in lobby
         console.log('Error add_player: You can only add players while in the game lobby');
     }
-}
+});
 
-function startGame() {
+socket.on('startGame', () => {
     if(game_state == game_states.LOBBY) {
         game_state = game_states.PLAYING;
 
@@ -117,7 +96,7 @@ function startGame() {
     } else {
         console.log('Error startGame: Can\'t start game when not in lobby');
     }
-}
+});
 
 socket.on('getThemeRes', (args) => {
     clearGameContainer();
@@ -136,6 +115,24 @@ socket.on('getThemeRes', (args) => {
     hintTxt.innerText = 'Envoyez des photos ayant un rapport avec le theme.';
     gameContainer.append(hintTxt);
     socket.emit('themeDisplayed');
+
+    let themeTime = 3 * 60 * 1000;
+    let timeCounter = 0;
+
+    let countdownEle = document.createElement('p');
+    countdownEle.classList.add('vote-countdown');
+
+    let countDownId = window.setInterval(() => {
+
+        countdownEle.innerText = Math.floor((themeTime - (timeCounter * 1000)) / 1000);
+
+        timeCounter++;
+        if((timeCounter * 1000) > themeTime) {
+            window.clearInterval(countDownId); // Removes Countdown
+        }
+    }, 1000);
+
+    gameContainer.append(countdownEle);
 });
 
 socket.on('photoUploadCompleted', () => {
@@ -146,6 +143,24 @@ socket.on('photoUploadCompleted', () => {
     consigneEle.innerText = 'Rearengez les photos recu pour faire une histoire';
     gameContainer.append(consigneEle);
     socket.emit('consigneDisplayed');
+
+    let themeTime = 3 * 60 * 1000;
+    let timeCounter = 0;
+
+    let countdownEle = document.createElement('p');
+    countdownEle.classList.add('vote-countdown');
+
+    let countDownId = window.setInterval(() => {
+
+        countdownEle.innerText = Math.floor((themeTime - (timeCounter * 1000)) / 1000);
+
+        timeCounter++;
+        if((timeCounter * 1000) > themeTime) {
+            window.clearInterval(countDownId); // Removes Countdown
+        }
+    }, 1000);
+
+    gameContainer.append(countdownEle);
 });
 
 socket.on('presentation', (args) => {
@@ -221,11 +236,6 @@ function clearGameContainer() { // Clear the game container
     }
 }
 
-function connectionEstablished() {
-    loadingContainer.style.display = 'none';
-    initContainer.style.display = 'inline';
-}
-
 function endGame() {
     game_state = game_states.NONE; // Reset game state
     while(gameContainer.childElementCount > 0) { // Clear the game container
@@ -241,9 +251,3 @@ function endGame() {
     gameOverParagraph.style.fontFamily = "Monospace";
     document.body.appendChild(gameOverParagraph);
 }
-
-// TEST THE METHODS
-
-// init_funct({a: 0});
-
-// add_player({name: 'valen20'});

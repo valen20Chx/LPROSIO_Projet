@@ -14,6 +14,7 @@ FIRESTORE
 SET
 
     setJoueur(roomCode, nomJoueur, dataPlayer) //Test OK
+    setHasPres(roomCode, playerName, value)//Test OK
     addPoint(roomCode, playerName, newPoints)//Test OK
     set_CompoRecieve(roomCode, idPlayer, arrImgToSet)//TEST OK
     set_CompoSet(roomCode, playerName, arrImgToSet)//TEST OK
@@ -24,8 +25,9 @@ SET
 
 GET
     playerExist(roomCode, playerName, callback)  //Test OK
+    partieExist(roomCode, callback) //TEST OK 
     getPartie(roomCode, callback) //TEST OK 
-    getCompo(roomCode, playerName, compoType) //TEST OK
+    getCompo(roomCode, playerName, compoType, callback) //TEST OK
     getPlayer(roomCode, playerName, callback)//Test OK
     getAllPlayer(roomCode, callback) //TEST OK
     getPlayerByPoint(roomCode, callback) //TEST OK

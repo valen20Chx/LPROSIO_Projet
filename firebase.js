@@ -3,19 +3,18 @@ const fs = require('fs'); //creer lire efface fichier/dossier
 class firebase {
     constructor(api_key_file) {
         this.admin = require("firebase-admin");
+        this.rimraf = require("rimraf");
         this.serviceAccount = require(api_key_file); //le service account key 
         this.admin.initializeApp({
             credential: this.admin.credential.cert(this.serviceAccount),
             databaseURL: "https://lprosio-projet.firebaseio.com"
         });
-
         this.db = this.admin.firestore();
     }
 /////////////////     
     //ROOM CODE//
     creatRoomCode() //TEST OK
     {
-        console.log('fonction createRoomCode');
         var result = '';
         var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         var charactersLength = characters.length;
@@ -24,12 +23,10 @@ class firebase {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-        console.log('FIN fonction roomCodeExist');
     }
 
     roomCodeExist(arrayCodes, roomCode) //Test OK
     {
-        console.log('fonction roomCodeExist');
         let i = 0;
         for (i = 0; i < arrayCodes.length; i++) {
             if (roomCode == arrayCodes[i]) {
@@ -37,7 +34,6 @@ class firebase {
                 return true;
             }
         }
-        console.log('FIN fonction roomCodeExist');
         return false; //C
     }
 
@@ -53,14 +49,15 @@ class firebase {
                     console.log('No such document! : getRoomCode');
                     callback(false);
                 } else {
-                    console.log('Recupere tout les roomCode...');
+                    //console.log('Recupere tout les roomCode...');
                     snapshot.forEach(element => {
-                        console.log(element.data());
+                        //console.log(element.data());
                         arrayCodes.push(element.roomCode);
                     });
                     while (this.roomCodeExist(arrayCodes, newRoomCode)) {
-                        roomCode = this.creatRoomCode();
+                        newRoomCode = this.creatRoomCode();
                     }
+                    this.db.collection('Game').doc(newRoomCode).set({roomCode : newRoomCode, nbImages : 0});
                     callback(newRoomCode);
                 }
             })
@@ -81,6 +78,25 @@ class firebase {
         playerRef.set(dataPlayer);
     }
 
+
+    setHasPres(roomCode, playerName, value)//Test OK
+    {
+        let roomRef = this.db.collection('Game').doc(roomCode);
+
+        let playerRef = roomRef.collection('Players').doc(playerName);
+        playerRef.get()
+        .then(doc => {
+            if (!doc.exists) {
+            console.log('No such document! : addPoint');
+            } else {
+            playerRef.update({hasPres: value});
+            }      
+        })
+        .catch(err => {
+            console.log('Error getting document', err);
+        });
+    }
+
     
     addPoint(roomCode, playerName, newPoints)//Test OK
     {
@@ -94,8 +110,6 @@ class firebase {
             } else {
             //console.log('Document data:', doc.data());
             let playerData =  doc.data();
-            console.log("Mon Player_Get POINTS before update", playerData.points);
-            console.log("Mon Player_Get Points after update", playerData.points);
             playerRef.update({points: playerData.points += newPoints});
             }      
         })
@@ -106,15 +120,17 @@ class firebase {
 
     set_CompoRecieve(roomCode, idPlayer, arrImgToSet)//TEST OK
     {
+        console.log('set_CompoRecieve: roomcode: ' + roomCode + ' player : ' + idPlayer);
         let roomRef = this.db.collection('Game').doc(roomCode);
-        this.getPlayerById('CODE', idPlayer, player =>{
+        this.getPlayerById(roomCode, idPlayer, player =>{
             let playerName =  player[0].nom;
             console.log("Nom Recu : " + playerName);
             let playerRef = roomRef.collection('Players').doc(playerName);
             let compoRef = playerRef.collection('Compositions').doc('Get');
             compoRef.set(arrImgToSet);
-        })
-               
+            console.log("FIN GetPlayerById");
+        });
+       console.log('FIN FONCTION COMPORECIEVE');        
     }
 
     set_CompoSet(roomCode, playerName, arrImgToSet)//TEST OK
@@ -130,7 +146,7 @@ class firebase {
         let roomRef = this.db.collection('Game').doc(roomCode);
         let playerRef = roomRef.collection('Players').doc(playerName);
         let compoRef = playerRef.collection('Compositions').doc('Chosen');
-        compoRef.set(arrImgToSet);
+        compoRef.set({idImg : arrImgToSet});
     }
 
     set_Titre(roomCode, playerName, titre) //TEST OK
@@ -138,7 +154,7 @@ class firebase {
         let roomRef = this.db.collection('Game').doc(roomCode);
         let playerRef = roomRef.collection('Players').doc(playerName);
         let compoRef = playerRef.collection('Compositions').doc('CHOSENNN');
-        compoRef.set(titre);
+        compoRef.set({titre : titre});
     }
 ///////////////////////////
     //GET FROM FIRESTORE//
@@ -164,6 +180,27 @@ class firebase {
         console.log('Error getting document', err);
         callback(false);
         });
+    }
+
+
+
+
+    partieExist(roomCode, callback) //TEST OK
+    {
+        this.db.collection('Game').doc(roomCode).get()
+            .then(doc => {
+                if (!doc.exists) {
+                    console.log('No such document! : ' + roomCode);
+                    callback(false);
+                } else {
+                    //console.log('Document data:', doc.data());
+                    callback(true);
+                }
+            })
+            .catch(err => {
+                console.log('Error getting document', err);
+                callback(false);
+            });
     }
               
     getPartie(roomCode, callback) //TEST OK
@@ -191,11 +228,13 @@ class firebase {
         roomRef.collection('Players').doc(playerName).collection('Compositions').doc(compoType).get()
             .then(doc => {
                 if (!doc.exists) {
+                    console.log('roomCode : ' + roomCode);
+                    console.log('playerName : ' + playerName);
                     console.log('No such document! : getCompo :', compoType);
                     callback(undefined);
                 } else {
-                    //sendToClient(compo_Get);
-                    callback(doc.data());
+                    let tabImg = doc.data().Idimg;
+                    callback(tabImg);
                 }
             })
             .catch(err => {
@@ -353,13 +392,13 @@ class firebase {
                 ArrImg[idImg] = i; //attribue le joueur
             }
         }
-        console.log(ArrImg + " FIN ATTRIBUE img");
+        console.log(ArrImg + " FIN fonction ATTRIBUE img");
         return ArrImg;
     }
 
-    distribueIdImage(roomCode, arrImg, nbPlayer)//TEST OK
+    distribueIdImage(roomCode, arrImg, nbPlayer, callback) //TEST OK
     {
-        for(let i = 1; i<nbPlayer+1; i++)
+        for(let i = 1; i<nbPlayer + 1; i++)
         {
             let arrImg_toDo = [];
             for(let j = 0; j<arrImg.length; j++)
@@ -374,7 +413,9 @@ class firebase {
                 idImg : arrImg_toDo
             }
             this.set_CompoRecieve(roomCode, i, arrImg_toSet);
-        }
+        } //////////////////////  BUG ICI ///////////////////////////////
+        console.log("CallBAck distribueImg");
+        setTimeout(() => {callback()}, 5000);
     }
 
    
@@ -457,6 +498,11 @@ class firebase {
         });   
     }
 
+    deleteDir(roomCode)
+    {
+        this.rimraf(__dirname + '/ressources/images/' + roomCode, function () { console.log(roomCode + " effacé"); });
+    }
+
     readFileImg(roomCode, idImage, callback) //TEST OK
     {
         let pathImg = __dirname + '/ressources/images/' + roomCode + "/" + idImage;
@@ -477,69 +523,6 @@ class firebase {
         });   
     }
 
-  /*  getExtention(nameFile)
-    {
-    let extention;
-    let chaineSepare = nameFile.split('.')
-    extention = chaineSepare[chaineSepare.length - 1];
-    return '.' + extention;
-    }
-
-
-
-    //Charge les images dans les dossié
-    uploadImage(req, roomCode) //TO TEST
-    {
-        
-        console.log("Image Recuperée" + req.files);
-	if(req.files.upfile){
-	  var file = req.files.upfile,
-		name = file.name, 
-        type = file.mimetype;
-
-        get_incrementeNbImg(roomCode, nbImages =>{ 
-
-            let idImage = nbImages.nbImages;
-            //var uploadpath = __dirname + '/Game/' + name;
-            ext = getExtention(name);
-            let uploadpath = __dirname + '/Game/' + roomCode + '/'
-            var uploadpathImg = uploadpath + idImage + ext; //TODO afficher l'id
-    
-            console.log("uploadpath : " + uploadpath);
-    
-            file.mv(uploadpathImg,function(err){
-              if(err){
-                console.log("File Upload Failed",name, err);
-                res.send("Error Occured !")
-              }
-              else {
-                console.log("File Uploaded",name);
-                res.send('Done! Uploading files')
-    
-                //CONVERTION EN jpg
-                if(ext.localeCompare('.jpg') != 0 ) //Si pas egale
-                {
-                this.Jimp.read(uploadpathImg, (err, img) => {
-                  if (err) throw err;
-                  img
-                    .resize(256, 256) // resize
-                    .quality(60) // set JPEG quality
-                    .write(uploadpath + idImage + '.jpg'); // save
-                });
-                //SUPPRESSION image != jpg
-                fs.unlinkSync(uploadpathImg);
-               }
-              }
-            });
-
-        })
-		
-	}
-	else {
-	  res.send("No File selected !");
-	  res.end();
-    } 
-}*/
-
+  
 }
 module.exports = firebase;

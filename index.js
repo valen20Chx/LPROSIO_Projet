@@ -1,7 +1,7 @@
 const express = require('express');
-var app = express();
-var http = require('http').createServer(app);
-var io = require('socket.io')(http);
+let app = express();
+let http = require('http').createServer(app);
+let io = require('socket.io')(http);
 
 // const hostname = '127.0.0.1';
 const port = 3000;
@@ -12,14 +12,20 @@ http.listen(port, () => {
 	console.log(`listening on *:${port}`);
 });
 
-var firebaseMod = new require('./firebase');
-var firebase = new firebaseMod("./lprosio-projet-firebase-adminsdk-fk5af-4e315c4f6e.json");
+let firebaseMod = new require('./firebase');
+let firebase = new firebaseMod("./lprosio-projet-firebase-adminsdk-fk5af-4e315c4f6e.json");
 
-// app.get('/', (req, res) => {
-//     res.setHeader('Content-Type', 'text/html');
-//     res.statusCode = 200;
-//     res.sendFile(__dirname + '/public' + '/index.html');
-// });
+let themeArray = [
+	"Medieval",
+	"Fantastique",
+	"Science-Fiction",
+	"Horreur",
+	"Erotique",
+	"Policier",
+	"Romantique",
+	"Gangster",
+	"Tragique"
+];
 
 //////////////////////
 //    Socket.io
@@ -31,7 +37,11 @@ const socket_types = {
 	NONE: 0
 };
 
+let gameHosts = new Map();
+
 const MAX_PLAYERS = 8;
+
+const MAX_STAGES = 3;
 
 io.on('connection', (socket) => { // Pour le client
 	console.log('New connection: ' + socket.id);
@@ -42,36 +52,53 @@ io.on('connection', (socket) => { // Pour le client
 
 // GAME HOST HERE
 io.of('/host').on('connection', (socket) => {
+	console.log('New Game Host: ' + socket.id);
+	socket.on('disconnect', () => {
+		console.log('Game Host disconnection: ') + socket.id;
 
+		// TODO : remove in DB and FS
+		// firebase.deleteParti(socket.roomCode);
+		// firebase.deleteDIR(socket.roomCode);
+	});
 	// Game Host asks for new code to create a new Game
 	socket.on('getRoomCode', () => {
-		var code = creatRoomCode();
-		console.log('Creating Room: ' + code);
-		// TODO: Recuperer un nouveau code (DB)
-		var obj = {
-			roomCode: code
-		};
-		socket.emit('init', obj);
-		socket.roomCode = code;
-		socket.join(code);
-		socket.type = socket_types.GAME_HOST;
+		firebase.getNewRoomCode((code) => {
 
-		// Socket Variables
-		socket.nbPlayers = 0;
-		socket.nbVotes = 0;
-		socket.nbUploads = 0;
-		socket.nbCompo = 0;
+			console.log('Creating Room: ' + code);
 
-		socket.emit('game-launched', {roomCode: code});
+			socket.emit('init', {
+				roomCode : code
+			});
+
+			socket.roomCode = code;
+			socket.join(code);
+			socket.type = socket_types.GAME_HOST;
+
+			// Socket Variables
+			socket.nbPlayers = 0;
+			socket.nbVotes = 0;
+			socket.nbUploads = 0;
+			socket.nbCompo = 0;
+			socket.nbPres = 0;
+			socket.stage = 0;
+
+			gameHosts.set(code, {
+				socket: socket,
+				roomCode: code,
+				id: socket.id,
+				players: new Map()
+			});
+			firebase.createDIR(socket.roomCode);
+		});
 	});
 
 	// Game Host asks for new theme
 	socket.join(socket.roomCode);
 
-	socket.on('getTheme', ()=> {
+	socket.on('getTheme', () => {
 
-		let theme = 'Exemple'; // TODO : Find current stage of game for the room
-		let stage = 1; // TODO: Generate Theme
+		let theme = themeArray[Math.floor(Math.random() * themeArray.length)];
+		let stage = 1;
 
 		socket.emit('getThemeRes', {
 			theme: theme,
@@ -85,6 +112,11 @@ io.of('/host').on('connection', (socket) => {
 		setTimeout(() => {
 			socket.emit('photoUploadCompleted');
 		}, uploadTime);
+
+		io.of('/player').in(socket.roomCode).emit('player-uploadPage', {
+			nbPhotos: 5
+		});
+		socket.nbUploads = 0;
 	});
 
 	// Game host tells that they displayed the task
@@ -92,51 +124,100 @@ io.of('/host').on('connection', (socket) => {
 		const taskTime = 3 * 60 * 1000;
 		setTimeout(newPresentation, taskTime);
 	});
-
+	
 	function newPresentation() {
-		let presPlayer; // TODO : choose a random player in game
-		let presImages; // TODO : Get Images from ressources
 
-		const presTime = (1 * 60 * 1000) + (30 * 1000);
+		firebase.getAllPlayer(socket.roomCode, (data) => {
 
-		socket.emit('presentation', {
-			playerName: presPlayer,
-			images: presImages
-		});
+			let presPlayer;
+			let presImages = [];
 
-		setTimeout(() => {
-			if(true) { // TODO: check if there is a player left to present
-				newPresentation();
-			} else {
-				socket.emit('end-presentation');
-				socket.emit('vote-screen');
+			let foundGoodPlayer = false;
+			while(!foundGoodPlayer) {
+				presPlayer = data[Math.floor(Math.random() * data.length)];
+
+				if(presPlayer.hasPres == false) {
+					foundGoodPlayer = true;
+				}
 			}
-		}, presTime);
+			firebase.getCompo(socket.roomCode, socket.playername, 'Chosen', (data) => {
+				data.forEach(element => {
+					firebase.readFileImg(socket.roomCode, element, (data) => {
+						presImage.push(data);
+					});
+				});
+			
+				const presTime = (1 * 60 * 1000) + (30 * 1000);
+
+				socket.emit('presentation', {
+					playerName: presPlayer,
+					images: presImages
+				});
+
+				setTimeout(() => {
+					if(socket.nbPres >= socket.nbPlayers) {
+						newPresentation();
+					} else {
+						socket.emit('end-presentation');
+						socket.emit('vote-screen');
+					}
+				}, presTime);
+			});
+
+			socket.nbPres++;
+		});
 	}
 });
 
 
 //// PLAYER HERE
 io.of('/player').on('connection', (socket)  => {
+	console.log('New Player : ' + socket.id);
+	socket.on('disconnect', () => {
+		console.log('Player disconnection: ') + socket.id;
+	});
 	
 	socket.on('playerConnect', (args) => {
-		// TODO: Verify if room exist
-		if(MAX_PLAYERS > io.of('/host').in(socket.roomCode).nbPlayers) {
-			// TODO: Enregistre joueur
-			socket.type = socket_types.PLAYER;
-			socket.roomCode = args.roomCode;
-			socket.playerName = args.username;
+		firebase.partieExist(args.roomCode, (data) => {
+			if(data) {
+				if(gameHosts.get(args.roomCode).socket.nbPlayers < MAX_PLAYERS) {
 
-			io.of('/host').in(socket.roomCode).emit('add-player', socket.playerName);
+					firebase.setJoueur(args.roomCode, args.username, {
+						nom : args.username,
+						points : 0,
+						id : gameHosts.get(args.roomCode).socket.nbPlayers + 1,
+						hasPres: false
+					});
 
-			socket.emit('playerConnect-ok', {
-				isVIP: (io.of('/host').in(socket.roomCode).nbPlayers == 0 ? true : false)
-			});
-		} else {
-			socket.emit('playerConnect-error', {
-				msg: "Wrong arguments"
-			});
-		}
+					socket.type = socket_types.PLAYER;
+					socket.roomCode = args.roomCode;
+					socket.playerName = args.username;
+
+					socket.join(socket.roomCode);
+					gameHosts.get(socket.roomCode).players.set(socket.playerName, {
+						socket: socket,
+					});
+
+					io.of('/host').in(socket.roomCode).emit('add-player', {name: socket.playerName});
+
+					socket.emit('playerConnect-ok', {
+						isVip: (gameHosts.get(socket.roomCode).socket.nbPlayers == 0 ? true : false)
+					});
+
+					gameHosts.get(socket.roomCode).socket.nbPlayers++;
+
+				} else {
+					socket.emit('playerConnect-error', {
+						msg: "Game Full"
+					});
+				}
+			} else {
+				// Game Room dont Exist
+				socket.emit('playerConnect-error', {
+					msg: "Game Room doesnt exist"
+				});
+			}
+		});
 	});
 
 	socket.on('player-startGame', () => {
@@ -145,67 +226,77 @@ io.of('/player').on('connection', (socket)  => {
 
 	socket.on('player-upload-images', (args) => {
 		args.photos.forEach(element => {
-			// TODO : Save element (image) is ressource
+			firebase.creatFileImg(roomCode, element);
 		});
 
-		if(io.of('/host').in(socket.roomCode).nbUploads >= io.of('/host').in(socket.roomCode).nbPlayers) {
-			// TODO : Mix photos
+		gameHosts.get(socket.roomCode).socket.nbUploads++;
 
-
-			io.of('/host').in(socket.roomCode).emit('photoUploadCompleted');
-			io.of('/host').in(socket.roomCode).nbUploads = 0;
-
-			let servCount = 0;
-
-			io.of('/player').in(socket.roomCode).clients.forEach(element => {
-				const cliSock = io.to(element.id);
-
-				let imagesDataArray = [];
-				let imagesDataArrayId = [];
-				
-				let playername = cliSock.playerName;
-
-				// TODO : Serve Images (Compo get)
-
-				cliSock.emit('player-make-story', {
-					images: imagesDataArray,
-					imagesId: imagesDataArrayId
+		if(gameHosts.get(socket.roomCode).socket.nbUploads >= gameHosts.get(socket.roomCode).socket.nbPlayers) {
+			let arrIdImg = firebase.attribueIdImages(gameHosts.get(socket.roomCode).socket.nbPlayers, 5);
+			firebase.distribueIdImage(socket.roomCode, arrIdImg, gameHosts.get(socket.roomCode).socket.nbPlayers, () => {
+				io.of('/host').in(socket.roomCode).emit('photoUploadCompleted');
+				gameHosts.get(socket.roomCode).socket.nbUploads = 0;
+	
+				let servCount = 0;
+				// console.log(io.of('/player').in(socket.roomCode));
+				gameHosts.get(socket.roomCode).players.forEach(element => {
+					const cliSock = io.to(element.socket.id);
+	
+					let playername = element.socket.playerName;
+					console.log('getCompo for ' + socket.roomCode + ' : ' + playername);
+					firebase.getCompo(socket.roomCode, playername, 'Get', (compoGet) =>{
+	
+						let imagesDataArray = [];
+						let imagesDataArrayId = [];
+	
+						compoGet.forEach(element => {
+							readFileImg(socket.roomCode, element, (data) => {
+								imagesDataArray.push(data);
+							});
+							imageDataArrayId.push(element);
+						});
+						
+						cliSock.emit('player-make-story', {
+							images: imagesDataArray,
+							imagesId: imagesDataArrayId
+						});
+					});
 				});
-
-				serveCount++;
 			});
 		}
-
+			
 		socket.emit('player-upload-images-ok');
 	});
 
 	socket.on('player-upload-compo', (args) => {
-		args.images.forEach(element => {
-			// TODO: add element (photo id) to DB as composition
-		});
 
-		if(io.of('/host').in(socket.roomCode).nbCompo >= io.of('/host').in(socket.roomCode).nbPlayers) {
-			io.of('/host').in(socket.roomCode).emit('presentation');
-			io.of('/host').in(socket.roomCode).nbCompo = 0;
+		firebase.set_CompoChosen(socket.roomCode, socket.playerName, args.images);
+		firebase.set_Titre(socket.roomCode, socket.playerName, args.title);
+
+		gameHosts.get(socket.roomCode).socket.nbCompo++;
+
+		if(gameHosts.get(socket.roomCode).socket.nbCompo >= gameHosts.get(socket.roomCode).socket.nbPlayers) {
+			o.of('/host').in(socket.roomCode).emit('presentation');
+			gameHosts.get(socket.roomCode).socket.nbCompo = 0;
 		}
 
 		socket.emit('player-upload-compo-ok');
 	});
 
 	socket.on('player-vote', (args) => {
-		// TODO : vote for args.player in DB
-
-		io.of('/host').in(socket.roomCode).emit('player-vote', {
+		addPoint(socket.roomCode, args.playername, 100 * gameHosts.get(socket.roomCode).socket.stage);
+		o.of('/host').in(socket.roomCode).emit('player-vote', {
 			player: socket.playerName
 		});
 
-		// TODO : Verify if everyone has voted
+		gameHosts.get(socket.roomCode).socket.nbVotes++;
 
-		if(io.of('/host').in(socket.roomCode).nbVotes >= io.of('/host').in(socket.roomCode).nbPlayers) {
-			io.of('/host').in(socket.roomCode).emit('vote-finished');
-			io.of('/host').in(socket.roomCode).nbVotes = 0;
+		if(gameHosts.get(socket.roomCode).socket.nbVotes >= gameHosts.get(socket.roomCode).socket.nbPlayers) {
+			o.of('/host').in(socket.roomCode).emit('vote-finished');
+			gameHosts.get(socket.roomCode).socket.nbVotes = 0;
+			gameHosts.get(socket.roomCode).socket.stage++;
 		}
 
-		socket.emit('player-vote-ok')
+		socket.emit('player-vote-ok');
 	});
 });
