@@ -133,6 +133,20 @@ class firebase {
        console.log('FIN FONCTION COMPORECIEVE');        
     }
 
+    set_CompoRecieveAll(roomCode, arrOfArrImgToSet, callback)
+    {
+        arrOfArrImgToSet.forEach((element, id) => {
+            let roomRef = this.db.collection('Game').doc(roomCode);
+            this.getPlayerById(roomCode, id, player => {
+                let playerName =  player[0].nom;
+                let playerRef = roomRef.collection('Players').doc(playerName);
+                let compoRef = playerRef.collection('Compositions').doc('Get');
+                compoRef.set(element);
+            });
+        });
+        callback();
+    }
+
     set_CompoSet(roomCode, playerName, arrImgToSet)//TEST OK
     {
         let roomRef = this.db.collection('Game').doc(roomCode);
@@ -398,6 +412,7 @@ class firebase {
 
     distribueIdImage(roomCode, arrImg, nbPlayer, callback) //TEST OK
     {
+        let arrOfArr = [];
         for(let i = 1; i<nbPlayer + 1; i++)
         {
             let arrImg_toDo = [];
@@ -412,10 +427,14 @@ class firebase {
             let arrImg_toSet = {
                 idImg : arrImg_toDo
             }
-            this.set_CompoRecieve(roomCode, i, arrImg_toSet);
+            // this.set_CompoRecieve(roomCode, i, arrImg_toSet);
+            arrOfArr.push(arrImg_toSet);
         } //////////////////////  BUG ICI ///////////////////////////////
         console.log("CallBAck distribueImg");
-        setTimeout(() => {callback()}, 5000);
+
+        this.set_CompoRecieveAll(roomCode, arrOfArr, callback);
+
+        // setTimeout(() => {callback()}, 5000);
     }
 
    
@@ -459,12 +478,9 @@ class firebase {
           }
     }
 
-
-    
     creatFileImg(roomCode, contenuImg)//TEST OK
     {
-        this.get_incrementeNbImg(roomCode, nbImages =>{ 
-
+        this.get_incrementeNbImg(roomCode, nbImages => { 
             let idImage = nbImages;
             console.log("recupId Image : " + idImage);
             let pathImg = __dirname + '/ressources/images/' + roomCode + "/" + idImage;
@@ -473,6 +489,7 @@ class firebase {
                     console.log('File already exists');
                 } else if(err.code === 'ENOENT') {
                     //creer le Fichier
+                    console.log('creation du fichier : ' + pathImg);
                     fs.writeFileSync(pathImg, contenuImg);
                 } else {
                     console.log('Some other error: ', err.code);

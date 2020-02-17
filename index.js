@@ -1,7 +1,8 @@
 const express = require('express');
-let app = express();
-let http = require('http').createServer(app);
-let io = require('socket.io')(http);
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+const SocketIOFile = require('socket.io-file');
 
 // const hostname = '127.0.0.1';
 const port = 3000;
@@ -24,7 +25,8 @@ let themeArray = [
 	"Policier",
 	"Romantique",
 	"Gangster",
-	"Tragique"
+	"Tragique",
+	"Western"
 ];
 
 //////////////////////
@@ -192,6 +194,7 @@ io.of('/player').on('connection', (socket)  => {
 					socket.type = socket_types.PLAYER;
 					socket.roomCode = args.roomCode;
 					socket.playerName = args.username;
+					socket.nbUploads = 0;
 
 					socket.join(socket.roomCode);
 					gameHosts.get(socket.roomCode).players.set(socket.playerName, {
@@ -225,20 +228,16 @@ io.of('/player').on('connection', (socket)  => {
 	});
 
 	socket.on('player-upload-images', (args) => {
-		args.photos.forEach(element => {
-			firebase.creatFileImg(roomCode, element);
-		});
+		firebase.creatFileImg(socket.roomCode, args.image);
 
 		gameHosts.get(socket.roomCode).socket.nbUploads++;
 
-		if(gameHosts.get(socket.roomCode).socket.nbUploads >= gameHosts.get(socket.roomCode).socket.nbPlayers) {
+		if((gameHosts.get(socket.roomCode).socket.nbUploads * gameHosts.get(socket.roomCode).socket.nbPlayers) >= gameHosts.get(socket.roomCode).socket.nbPlayers * 5) {
 			let arrIdImg = firebase.attribueIdImages(gameHosts.get(socket.roomCode).socket.nbPlayers, 5);
 			firebase.distribueIdImage(socket.roomCode, arrIdImg, gameHosts.get(socket.roomCode).socket.nbPlayers, () => {
 				io.of('/host').in(socket.roomCode).emit('photoUploadCompleted');
 				gameHosts.get(socket.roomCode).socket.nbUploads = 0;
-	
-				let servCount = 0;
-				// console.log(io.of('/player').in(socket.roomCode));
+				console.log('TEST -------------------');
 				gameHosts.get(socket.roomCode).players.forEach(element => {
 					const cliSock = io.to(element.socket.id);
 	

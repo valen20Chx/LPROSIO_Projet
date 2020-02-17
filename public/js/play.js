@@ -85,11 +85,11 @@ socket.on('player-uploadPage', (args) => {
             for(let index = 0; index < imageArrayEle.length; index++) {
                 getBase64(imageArrayEle[index].files[0], (imageData) => {
                     imageDataArray.push(imageData);
+                    socket.emit('player-upload-images', {
+                        image: imageData,
+                    });
                 });
             }
-            socket.emit('player-upload-images', {
-                photos: imageDataArray
-            });
         } else { // Input 'array' is not valid (not full or wrong file type)
             // TODO : ERROR MESSAGE
         }
